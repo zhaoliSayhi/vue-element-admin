@@ -1,4 +1,6 @@
-const roles = state => state.roles
+const permission_routes = state => state.permission_routes
+const token = state => state.user.token
+const roles = state => state.user.roles
 const routes = state => state.user.routes
 const addRoutes = addRoutes => state.user.addRoutes
 
@@ -17,6 +19,8 @@ const sidebarLogo = state => state.settings.sidebarLogo
 const errorLogs = state => state.errorLog.logs
 
 export {
+  permission_routes,
+  token,
   roles,
   sidebar,
   size,

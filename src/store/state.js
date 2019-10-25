@@ -1,14 +1,18 @@
 import Cookies from 'js-cookie'
 import variables from '@/styles/element-variables.less'
 import defaultSettings from '@/settings'
+import { getToken, setToken, removeToken } from '@/utils/auth'
 
 const { showSettings, tagsViews, fixedHeader, sidebarLogo } = defaultSettings
 
 const state = {
-  roles: [],
+  permission_routes: [],
+  avatar: '',
   user: {
     routes: [],
     addRoutes: [],
+    roles: [],
+    token: getToken(),
   },
   app: {
     sidebar: {

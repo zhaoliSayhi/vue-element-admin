@@ -1,5 +1,7 @@
 import * as types from "./mutation-types"
-import {asyncRoutes} from '@/router'
+import { _login, _logout, _getInfo } from '@/api/user'
+import { getToken, setToken, removeToken } from '@/utils/auth'
+import router, { resetRouter,asyncRoutes } from '@/router'
 
 /**
  * Use meta.role to determine if the current user has permission
@@ -44,8 +46,102 @@ const generateRoutes = ({commit}, roles) => {
     } else {
       accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)
     }
-    commit(types.SET_ROUTES, accessedRoutes)
+
+    // TODO fix
+    console.log(accessedRoutes, '---TODO fix')
+
+    // commit(types.SET_ROUTES, accessedRoutes)
     resolve(accessedRoutes)
+  })
+}
+const login = ({ commit }, userInfo) => {
+  const { username, password } = userInfo
+  return new Promise((resolve, reject) => {
+    _login({ username: username.trim(), password: password }).then(response => {
+        console.log(response, 'res')
+      const { data } = response
+      commit(types.SET_TOKEN, data.token)
+      setToken(data.token)
+      resolve()
+    }).catch(error => {
+      reject(error)
+    })
+  })
+}
+const getInfo = ({commit, state}) => {
+  return new Promise((resolve, reject) => {
+    _getInfo(state.user.token).then(response => {
+      const { data } = response
+
+      if (!data) {
+        reject('Verification failed, please Login again.')
+      }
+
+      // const { roles, name, avatar, introduction } = data
+      const { roles } = data
+
+      // roles must be a non-empty array
+      if (!roles || roles.length <= 0) {
+        reject('getInfo: roles must be a non-null array!')
+      }
+
+      commit(types.SET_ROLES, roles)
+      // commit('SET_NAME', name)
+      // commit('SET_AVATAR', avatar)
+      // commit('SET_INTRODUCTION', introduction)
+      resolve(data)
+    }).catch(error => {
+      reject(error)
+    })
+  })
+}
+const logout = ({commit,state,dispatch}) => {
+  return new Promise((resolve, reject) => {
+    _logout(state.token).then(() => {
+      commit(types.SET_TOKEN, '')
+      commit(types.SET_ROLES, [])
+      removeToken()
+      resetRouter()
+
+      // reset visited views and cached views
+      // to fixed https://github.com/PanJiaChen/vue-element-admin/issues/2485
+      dispatch('delAllViews', null, { root: true })
+
+      resolve()
+    }).catch(error => {
+      reject(error)
+    })
+  })
+}
+const resetToken = ({commit}) => {
+  return new Promise(resolve => {
+    commit(types.SET_TOKEN, '')
+    commit(types.SET_ROLES, [])
+    removeToken()
+    resolve()
+  })
+}
+const changeRoles = ({commit, dispatch}, role) => {
+  return new Promise(async resolve => {
+    const token = role + '-token'
+
+    commit(types.SET_TOKEN, token)
+    setToken(token)
+
+    const { roles } = await dispatch('getInfo')
+
+    resetRouter()
+
+    // generate accessible routes map based on roles
+    const accessRoutes = await dispatch('generateRoutes', roles, { root: true })
+
+    // dynamically add accessible routes
+    router.addRoutes(accessRoutes)
+
+    // reset visited views and cached views
+    dispatch('delAllViews', null, { root: true })
+
+    resolve()
   })
 }
 
@@ -159,6 +255,11 @@ const clearErrorLog = ({commit}) => {
 
 export {
   generateRoutes,
+  login,
+  getInfo,
+  logout,
+  resetToken,
+  changeRoles,
   toggleSideBar,
   closeSideBar,
   toggleDevice,
@@ -178,5 +279,5 @@ export {
   updateVisitedView,
   changeSetting,
   addErrorLog,
-  clearErrorLog
+  clearErrorLog,
 }

@@ -74,7 +74,7 @@ export default {
   },
   mounted() {
     this.initTags()
-    this.addTags()
+    // this.addTags()
   },
   methods: {
     generateTitle, // generateTitle by vue-i18n

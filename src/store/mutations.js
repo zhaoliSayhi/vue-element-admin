@@ -17,6 +17,12 @@ const mutations = {
     state.user.addRoutes = routes
     state.user.routes = constantRoutes.concat(routes)
   },
+  [types.SET_ROLES](state, roles) {
+    state.user.roles = roles
+  },
+  [types.SET_TOKEN](state, token) {
+    state.user.token = token
+  },
 
   // -------------- side bar --------------
   [types.TOGGLE_SIDEBAR](state) {

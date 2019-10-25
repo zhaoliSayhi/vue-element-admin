@@ -163,21 +163,21 @@
       handleLogin() {
         this.$refs.loginForm.validate(valid => {
           if (valid) {
-            // this.loading = true
-            // this.$store.dispatch('user/login', this.loginForm)
-            //     .then(() => {
-            //       this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
-            //       this.loading = false
-            //     })
-            //     .catch(() => {
-            //       this.loading = false
-            //     })
-            this.$router.push({
-              path: this.redirect || '/',
-              query: this.otherQuery
-            }).catch(err => {
-              console.error(err)
-            })
+            this.loading = true
+            this.$store.dispatch('login', this.loginForm)
+                .then(() => {
+                  this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
+                  this.loading = false
+                })
+                .catch(() => {
+                  this.loading = false
+                })
+            // this.$router.push({
+            //   path: this.redirect || '/',
+            //   query: this.otherQuery
+            // }).catch(err => {
+            //   console.error(err)
+            // })
 
           } else {
             console.log('error submit!!')

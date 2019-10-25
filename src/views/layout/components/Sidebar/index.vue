@@ -31,6 +31,9 @@ export default {
       'permission_routes',
       'sidebar'
     ]),
+    created() {
+
+    },
     activeMenu() {
       const route = this.$route
       const { meta, path } = route
@@ -41,7 +44,7 @@ export default {
       return path
     },
     showLogo() {
-      return this.$store.state.settings.sidebarLogo
+      // return this.$store.state.settings.sidebarLogo
     },
     variables() {
       return variables
