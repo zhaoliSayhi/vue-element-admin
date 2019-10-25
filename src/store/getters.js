@@ -1,18 +1,53 @@
+const roles = state => state.roles
+const routes = state => state.user.routes
+const addRoutes = addRoutes => state.user.addRoutes
 
-export const allBanks = state => state.allBankNames;
+const sidebar = state => state.app.sidebar
+const size = state => state.app.size
+const device = state => state.app.device
 
-export const currentBank = state => state.currentBank;
+const visitedViews = state => deepClone(state.tagsView.visitedViews)
+const cachedViews = state => deepClone(state.tagsView.cachedViews)
 
-export const getUser = state => state.user;
+const showSettings = state => state.settings.showSettings
+const needTagsView = state => state.settings.tagsView
+const fixedHeader = state => state.settings.fixedHeader
+const sidebarLogo = state => state.settings.sidebarLogo
 
-export const grabDur = state => state.grabDuration;
+const errorLogs = state => state.errorLog.logs
 
-export const patchOrder = state => state.patchOrder;
+export {
+  roles,
+  sidebar,
+  size,
+  device,
+  visitedViews,
+  cachedViews,
+  showSettings,
+  needTagsView,
+  fixedHeader,
+  sidebarLogo,
+  errorLogs,
+  routes,
+  addRoutes
+}
 
-export const config = state => state.config;
-
-export const settings = state => state.settings;
-
-export const localNotice = state => state.localNotice;
-
-export const hasNewOrder = state => state.hasNewOrder;
+// TODO 待抽取
+function deepClone (sourceObj, targetObj) {
+  let cloneObj = targetObj || {}
+  if(!sourceObj || typeof sourceObj !== "object" || sourceObj.length === undefined){
+    return sourceObj
+  }
+  if(sourceObj instanceof Array){
+    cloneObj = sourceObj.concat()
+  } else {
+    for(let i in sourceObj){
+      if (typeof sourceObj[i] === 'object') {
+        cloneObj[i] = deepClone(sourceObj[i], {})
+      } else {
+        cloneObj[i] = sourceObj[i]
+      }
+    }
+  }
+  return cloneObj
+}

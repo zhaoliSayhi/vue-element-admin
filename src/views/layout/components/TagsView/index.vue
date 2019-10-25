@@ -18,17 +18,16 @@
     </scroll-pane>
     <ul v-show="visible" :style="{left:left+'px',top:top+'px'}" class="contextmenu">
       <li @click="refreshSelectedTag(selectedTag)">
-        {{ $t('tagsView.refresh') }}
+        刷新
       </li>
       <li v-if="!(selectedTag.meta&&selectedTag.meta.affix)" @click="closeSelectedTag(selectedTag)">
-        {{
-          $t('tagsView.close') }}
+        关闭
       </li>
       <li @click="closeOthersTags">
-        {{ $t('tagsView.closeOthers') }}
+        关闭其他
       </li>
       <li @click="closeAllTags(selectedTag)">
-        {{ $t('tagsView.closeAll') }}
+        关闭所有
       </li>
     </ul>
   </div>
@@ -38,6 +37,7 @@
 import ScrollPane from './ScrollPane'
 import { generateTitle } from '@/utils/i18n'
 import path from 'path'
+import {mapGetters} from 'vuex'
 
 export default {
   components: { ScrollPane },
@@ -51,12 +51,10 @@ export default {
     }
   },
   computed: {
-    visitedViews() {
-      return this.$store.state.tagsView.visitedViews
-    },
-    routes() {
-      return this.$store.state.permission.routes
-    }
+    ...mapGetters([
+        'visitedViews',
+        'routes'
+    ])
   },
   watch: {
     $route() {
@@ -70,6 +68,9 @@ export default {
         document.body.removeEventListener('click', this.closeMenu)
       }
     }
+  },
+  created() {
+
   },
   mounted() {
     this.initTags()
@@ -106,14 +107,14 @@ export default {
       for (const tag of affixTags) {
         // Must have tag name
         if (tag.name) {
-          this.$store.dispatch('tagsView/addVisitedView', tag)
+          this.$store.dispatch('addVisitedView', tag)
         }
       }
     },
     addTags() {
       const { name } = this.$route
       if (name) {
-        this.$store.dispatch('tagsView/addView', this.$route)
+        this.$store.dispatch('addView', this.$route)
       }
       return false
     },
@@ -125,7 +126,7 @@ export default {
             this.$refs.scrollPane.moveToTarget(tag)
             // when query is different then update
             if (tag.to.fullPath !== this.$route.fullPath) {
-              this.$store.dispatch('tagsView/updateVisitedView', this.$route)
+              this.$store.dispatch('updateVisitedView', this.$route)
             }
             break
           }
@@ -133,7 +134,7 @@ export default {
       })
     },
     refreshSelectedTag(view) {
-      this.$store.dispatch('tagsView/delCachedView', view).then(() => {
+      this.$store.dispatch('delCachedView', view).then(() => {
         const { fullPath } = view
         this.$nextTick(() => {
           this.$router.replace({
@@ -143,7 +144,7 @@ export default {
       })
     },
     closeSelectedTag(view) {
-      this.$store.dispatch('tagsView/delView', view).then(({ visitedViews }) => {
+      this.$store.dispatch('delView', view).then(({ visitedViews }) => {
         if (this.isActive(view)) {
           this.toLastView(visitedViews, view)
         }
@@ -151,12 +152,12 @@ export default {
     },
     closeOthersTags() {
       this.$router.push(this.selectedTag)
-      this.$store.dispatch('tagsView/delOthersViews', this.selectedTag).then(() => {
+      this.$store.dispatch('delOthersViews', this.selectedTag).then(() => {
         this.moveToCurrentTag()
       })
     },
     closeAllTags(view) {
-      this.$store.dispatch('tagsView/delAllViews').then(({ visitedViews }) => {
+      this.$store.dispatch('delAllViews').then(({ visitedViews }) => {
         if (this.affixTags.some(tag => tag.path === view.path)) {
           return
         }
@@ -202,7 +203,7 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="less" scoped>
 .tags-view-container {
   height: 34px;
   width: 100%;
@@ -270,7 +271,7 @@ export default {
 }
 </style>
 
-<style lang="scss">
+<style lang="less">
 //reset element css of el-icon-close
 .tags-view-wrapper {
   .tags-view-item {

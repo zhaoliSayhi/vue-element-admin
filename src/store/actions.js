@@ -1,114 +1,182 @@
-import * as types from './mutation-types'
-import {
-  setBankName,
-  setCurrentBankInfo,
-  saveUser,
-  saveGarbDur,
-  clearCurrentBankInfo,
-  clearGrabDur,
-  saveSettings,
-  saveLocalNotice
-} from 'common/js/cache'
-// import API from "../api/api";
-import Vue from 'vue'
-import axios from 'common/js/http.js'
-import {API} from "@/config";
-import utils from "../common/js/common";
+import * as types from "./mutation-types"
+import {asyncRoutes} from '@/router'
 
-Vue.prototype.API = API;
-Vue.prototype.axios = axios;
-Vue.prototype.utils = utils;
+/**
+ * Use meta.role to determine if the current user has permission
+ * @param roles
+ * @param route
+ */
+function hasPermission(roles, route) {
+  if (route.meta && route.meta.roles) {
+    return roles.some(role => route.meta.roles.includes(role))
+  } else {
+    return true
+  }
+}
 
-export const setAllBank = function ({commit, state}, list) {
-  return new Promise(async (resolve, reject) => {
-    const res = await axios.get(API.bankApi);
-    if (res === null) return;
+/**
+ * Filter asynchronous routing tables by recursion
+ * @param routes asyncRoutes
+ * @param roles
+ */
+export function filterAsyncRoutes(routes, roles) {
+  const res = []
 
-    let bankNameList = [];
-    for (let i in res.data) {
-      bankNameList.push({
-        key: i,
-        value: res.data[i]
-      })
-    }
-
-    commit(types.SET_ALL_BANK, setBankName(bankNameList));
-    resolve(bankNameList);
-  })
-};
-export const setCurrentBank = function ({commit, state}, obj) {
-  commit(types.SET_CURRENT_BANK, setCurrentBankInfo(obj))
-};
-
-export const clearCurrentBank = function ({commit, state}) {
-  commit(types.SET_CURRENT_BANK, clearCurrentBankInfo())
-};
-
-export const setUser = ({commit}) => {
-  return new Promise(async (resolve, reject) => {
-    const res = await axios.get(API.userInfo);
-    if (res === null) return;
-    commit(types.SET_USER, saveUser(res.data));
-    resolve(res.data);
-  })
-};
-
-export const patchOrder = ({commit}) => {
-  return new Promise(async (resolve, reject) => {
-    const res = await axios.get(API.patchOrder, {
-      params: {
-        type: 'additional',
-        seller_role: 'runner'
+  routes.forEach(route => {
+    const tmp = {...route}
+    if (hasPermission(roles, tmp)) {
+      if (tmp.children) {
+        tmp.children = filterAsyncRoutes(tmp.children, roles)
       }
-    });
-    if (res === null) return;
-    commit(types.SET_PATCH_ORDER, res.data.data);
-    resolve(res.data);
+      res.push(tmp)
+    }
   })
-};
 
-export const setGrabStatus = function ({commit, state}, dur) {
-  commit(types.SET_GRAB_DURATION, saveGarbDur(dur))
-};
+  return res
+}
 
-export const clearGrabStatus = function ({commit, state}) {
-  commit(types.SET_GRAB_DURATION, clearGrabDur())
-};
-
-export const updateConfig = ({commit}) => {
-  return new Promise(async (resolve, reject) => {
-    const currentVer = await utils.getAppVersion();
-    const res = await axios.get(API.configApi);
-    if (res === null) return;
-    let { version_update, notice } = res.data;
-    version_update.currentVer = currentVer;
-    commit(types.SET_VERSION, {notice, version_update});
-    resolve({notice, version_update});
+// -------------- user --------------
+const generateRoutes = ({commit}, roles) => {
+  return new Promise(resolve => {
+    let accessedRoutes
+    if (roles.includes('admin')) {
+      accessedRoutes = asyncRoutes || []
+    } else {
+      accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)
+    }
+    commit(types.SET_ROUTES, accessedRoutes)
+    resolve(accessedRoutes)
   })
-};
+}
 
-export const updateSettings = ({commit}) => {
-  return new Promise(async (resolve, reject) => {
-    const res = await axios.get(API.getSettings);
-    if (res === null) return;
-    commit(types.SET_SETTINGS, saveSettings(res.data));
-    resolve(res.data);
+// -------------- side bar --------------
+const toggleSideBar = ({commit}) => {
+  commit(types.TOGGLE_SIDEBAR)
+}
+const closeSideBar = ({commit}, withoutAnimation) => {
+  commit(types.CLOSE_SIDEBAR, withoutAnimation)
+}
+const toggleDevice = ({commit}, device) => {
+  commit(types.TOGGLE_DEVICE, device)
+}
+const setSize = ({commit}, size) => {
+  commit(types.SET_SIZE, size)
+}
+
+// -------------- tags view --------------
+const addView = ({dispatch}, view) => {
+  dispatch('addVisitedView', view)
+  dispatch('addCachedView', view)
+}
+const addVisitedView = ({commit}, view) => {
+  commit(types.ADD_VISITED_VIEW, view)
+}
+const addCachedView = ({commit}, view) => {
+  commit(types.ADD_CACHED_VIEW, view)
+}
+const delView = ({dispatch, state}, view) => {
+  return new Promise(resolve => {
+    dispatch('delVisitedView', view)
+    dispatch('delCachedView', view)
+    resolve({
+      visitedViews: [...state.visitedViews],
+      cachedViews: [...state.cachedViews]
+    })
   })
-};
-
-export const updateLocalNotice = function ({commit, state}, obj) {
-  commit(types.SET_LOCAL_NOTICE, saveLocalNotice(obj))
-};
-
-export const updateHasNewOrder = function ({commit, state}, val) {
-  commit(types.SET_HAS_NEW_ORDER, val)
-};
-
-export const getParentBeneficiary = function ({commit, state}) {
-  return new Promise(async (resolve, reject) => {
-    const res = await axios.get(API.parentBeneficiary);
-    if (res === null) return;
-    resolve(res.data);
+}
+const delVisitedView = ({commit, state}, view) => {
+  return new Promise(resolve => {
+    commit(types.DEL_VISITED_VIEW, view)
+    resolve([...state.visitedViews])
   })
-};
+}
+const delCachedView = ({commit, state}, view) => {
+  return new Promise(resolve => {
+    commit(types.DEL_CACHED_VIEW, view)
+    resolve([...state.cachedViews])
+  })
+}
+const delOthersViews = ({dispatch, state}, view) => {
+  return new Promise(resolve => {
+    dispatch('delOthersVisitedViews', view)
+    dispatch('delOthersCachedViews', view)
+    resolve({
+      visitedViews: [...state.visitedViews],
+      cachedViews: [...state.cachedViews]
+    })
+  })
+}
+const delOthersVisitedViews = ({commit, state}, view) => {
+  return new Promise(resolve => {
+    commit(types.DEL_OTHERS_VISITED_VIEWS, view)
+    resolve([...state.visitedViews])
+  })
+}
+const delOthersCachedViews = ({commit, state}, view) => {
+  return new Promise(resolve => {
+    commit(types.DEL_OTHERS_CACHED_VIEWS, view)
+    resolve([...state.cachedViews])
+  })
+}
+const delAllViews = ({dispatch, state}, view) => {
+  return new Promise(resolve => {
+    dispatch('delAllVisitedViews', view)
+    dispatch('delAllCachedViews', view)
+    resolve({
+      visitedViews: [...state.visitedViews],
+      cachedViews: [...state.cachedViews]
+    })
+  })
+}
+const delAllVisitedViews = ({commit, state}) => {
+  return new Promise(resolve => {
+    commit(types.DEL_ALL_VISITED_VIEWS)
+    resolve([...state.visitedViews])
+  })
+}
+const delAllCachedViews = ({commit, state}) => {
+  return new Promise(resolve => {
+    commit(types.DEL_ALL_CACHED_VIEWS)
+    resolve([...state.cachedViews])
+  })
+}
+const updateVisitedView = ({commit},view) => {
+  commit(types.UPDATE_VISITED_VIEW, view)
+}
 
+// -------------- tags view -------------
+const changeSetting = ({commit}, data) => {
+  commit(types.CHANGE_SETTING, data)
+}
+
+// -------------- error log -------------
+const addErrorLog = ({commit}, log) => {
+  commit(types.ADD_ERROR_LOG, log)
+}
+const clearErrorLog = ({commit}) => {
+  commit(types.CLEAR_ERROR_LOG)
+}
+
+export {
+  generateRoutes,
+  toggleSideBar,
+  closeSideBar,
+  toggleDevice,
+  setSize,
+  addView,
+  addVisitedView,
+  addCachedView,
+  delView,
+  delVisitedView,
+  delCachedView,
+  delOthersViews,
+  delOthersVisitedViews,
+  delOthersCachedViews,
+  delAllViews,
+  delAllVisitedViews,
+  delAllCachedViews,
+  updateVisitedView,
+  changeSetting,
+  addErrorLog,
+  clearErrorLog
+}

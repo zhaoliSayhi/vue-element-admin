@@ -1,24 +1,37 @@
-import {
-  getBankName,
-  getCurrentBankInfo,
-  loadGarbDur,
-  loadUser,
-  loadSettings,
-  loadLocalNotice
-} from "common/js/cache";
+import Cookies from 'js-cookie'
+import variables from '@/styles/element-variables.less'
+import defaultSettings from '@/settings'
+
+const { showSettings, tagsViews, fixedHeader, sidebarLogo } = defaultSettings
+
 const state = {
-  allBankNames: getBankName() || [], // 所有银行卡
-  currentBank: getCurrentBankInfo() || {},  // 当前所选银行卡信息
-  user: loadUser() || {}, // 用户信息
-  grabDuration: loadGarbDur() || '', // 抢单时长
-  patchOrder: [], // 补单订单
-  version : '',
-  config: {},
-  settings: loadSettings() || {},
-  localNotice: loadLocalNotice() || {
-    voice: false
+  roles: [],
+  user: {
+    routes: [],
+    addRoutes: [],
   },
-  hasNewOrder: false
+  app: {
+    sidebar: {
+      opened: Cookies.get('sidebarStatus') ? !!+Cookies.get('sidebarStatus') : true,
+      withoutAnimation: false
+    },
+    device: 'desktop',
+    size: Cookies.get('size') || 'medium'
+  },
+  tagsView: {
+    visitedViews: [],
+    cachedViews: []
+  },
+  settings: {
+    theme: variables.theme,
+    showSettings: showSettings,
+    tagsView: tagsViews,
+    fixedHeader: fixedHeader,
+    sidebarLogo: sidebarLogo
+  },
+  errorLog: {
+    logs: []
+  }
 };
 
 export default state

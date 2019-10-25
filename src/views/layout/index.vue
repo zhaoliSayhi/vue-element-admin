@@ -19,7 +19,7 @@
 import RightPanel from '@/components/RightPanel'
 import { AppMain, Navbar, Settings, Sidebar, TagsView } from './components'
 import ResizeMixin from './mixin/ResizeHandler'
-import { mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Layout',
@@ -33,13 +33,20 @@ export default {
   },
   mixins: [ResizeMixin],
   computed: {
-    ...mapState({
-      sidebar: state => state.app.sidebar,
-      device: state => state.app.device,
-      showSettings: state => state.settings.showSettings,
-      needTagsView: state => state.settings.tagsView,
-      fixedHeader: state => state.settings.fixedHeader
-    }),
+    ...mapGetters([
+      'sidebar',
+      'device',
+      'showSettings',
+      'needTagsView',
+      'fixedHeader'
+    ]),
+    // ...mapState({
+    //   sidebar: state => state.app.sidebar,
+    //   device: state => state.app.device,
+    //   showSettings: state => state.settings.showSettings,
+    //   needTagsView: state => state.settings.tagsView,
+    //   fixedHeader: state => state.settings.fixedHeader
+    // }),
     classObj() {
       return {
         hideSidebar: !this.sidebar.opened,
@@ -57,9 +64,8 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-  @import "~@/styles/mixin.scss";
-  @import "~@/styles/variables.scss";
+<style lang="less" scoped>
+  @import '../../styles/variables.less';
 
   .app-wrapper {
     @include clearfix;
@@ -88,7 +94,7 @@ export default {
     top: 0;
     right: 0;
     z-index: 9;
-    width: calc(100% - #{$sideBarWidth});
+    width: calc(100% - @sideBarWidth);
     transition: width 0.28s;
   }
 

@@ -84,7 +84,7 @@ export default {
 }
 </style>
 
-<style lang="scss" scoped>
+<style lang="less" scoped>
 .rightPanel-background {
   opacity: 0;
   transition: opacity .3s cubic-bezier(.7, .3, .1, 1);

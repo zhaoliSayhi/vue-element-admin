@@ -22,7 +22,7 @@
 // make search results more in line with expectations
 import Fuse from 'fuse.js'
 import path from 'path'
-import i18n from '@/lang'
+import {mapGetters} from 'vuex'
 
 export default {
   name: 'HeaderSearch',
@@ -36,12 +36,9 @@ export default {
     }
   },
   computed: {
-    routes() {
-      return this.$store.getters.permission_routes
-    },
-    lang() {
-      return this.$store.getters.language
-    }
+    ...mapGetters([
+      'routes'
+    ])
   },
   watch: {
     lang() {
@@ -149,7 +146,7 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="less" scoped>
 .header-search {
   font-size: 0 !important;
 
@@ -169,15 +166,15 @@ export default {
     display: inline-block;
     vertical-align: middle;
 
-    /deep/ .el-input__inner {
-      border-radius: 0;
-      border: 0;
-      padding-left: 0;
-      padding-right: 0;
-      box-shadow: none !important;
-      border-bottom: 1px solid #d9d9d9;
-      vertical-align: middle;
-    }
+    /*/deep/ .el-input__inner {*/
+    /*  border-radius: 0;*/
+    /*  border: 0;*/
+    /*  padding-left: 0;*/
+    /*  padding-right: 0;*/
+    /*  box-shadow: none !important;*/
+    /*  border-bottom: 1px solid #d9d9d9;*/
+    /*  vertical-align: middle;*/
+    /*}*/
   }
 
   &.show {

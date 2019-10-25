@@ -1,30 +1,26 @@
 const path = require('path');
+const defaultSettings = require('./src/settings.js')
 
 const resolve = dir => {
   return path.join(__dirname, dir)
 };
 
+const name = defaultSettings.title || 'vue Element Admin' // page title
+
 module.exports = {
-  // 打包路径
   publicPath: './',
-
-  // 是否开启eslint
+  outputDir: 'dist',
+  assetsDir: 'static',
   lintOnSave: false,
-
-  // 打包时不生成.map文件
   productionSourceMap: false,
 
-  css: {
-    loaderOptions: {
-      postcss: {
-        plugins: [
-          require("postcss-px2rem")({
-            remUnit: 75
-          })
-        ],
-      },
-      less: {
-        javascriptEnabled: true
+  configureWebpack: {
+    name,
+    resolve: {
+      extensions: ['.js', '.vue', '.html',".less", ".css", 'png', 'jpg'],
+      alias: {
+        '@': resolve('src'),
+        'components': resolve('src/components'),
       }
     }
   },
@@ -32,44 +28,33 @@ module.exports = {
   chainWebpack: config => {
     const types = ['vue-modules', 'vue', 'normal-modules', 'normal']
     types.forEach(type => addStyleResource(config.module.rule('less').oneOf(type)))
+
+    // set svg-sprite-loader
+    config.module
+        .rule('svg')
+        .exclude.add(resolve('src/icons'))
+        .end()
+    config.module
+        .rule('icons')
+        .test(/\.svg$/)
+        .include.add(resolve('src/icons'))
+        .end()
+        .use('svg-sprite-loader')
+        .loader('svg-sprite-loader')
+        .options({
+          symbolId: 'icon-[name]'
+        })
+        .end()
   },
 
-  configureWebpack: config => {
-    config.resolve = {
-      extensions: ['.js', '.vue', '.html',".less", ".css", 'png', 'jpg'],
-      alias: {
-        'vue$': 'vue/dist/vue.esm.js',
-        '@': resolve('src'),
-        'components': resolve('src/components'),
-        'common': resolve('src/common'),
-        'pages': resolve('src/pages'),
-        'assets': resolve('src/assets'),
-        'base': resolve('src/base'),
-        'api': resolve('src/api'),
-        'views': resolve('src/views'),
-      }
-    }
-  },
-
-  // 这里写你调用接口的基础路径，来解决跨域，如果设置了代理，本地开发环境的axios的baseUrl要写为 ''
-  devServer: {
-    // proxy: 'http://localhost:9014/'
-    proxy: {
-      '^/api': {
-        target: 'http://3.113.0.125:8011/',
-        ws: false,
-      },
-      '^/json': {
-        target: 'http://3.113.0.125:8011/',
-      },
-      '^/deepfile': {
-        target: 'http://47.244.178.133:8092/'
-      },
-      // '/': {
-      //   target: 'http://localhost:9014/'
-      // }
-    },
-  },
+  // devServer: {
+  //   // proxy: 'http://localhost:9014/'
+  //   proxy: {
+  //     '^/api': {
+  //       target: ''
+  //     }
+  //   },
+  // },
 };
 
 function addStyleResource(rule) {
@@ -79,5 +64,5 @@ function addStyleResource(rule) {
         patterns: [
           path.resolve(__dirname, 'src/common/css/*.less'),
         ],
-      })
+      });
 }
